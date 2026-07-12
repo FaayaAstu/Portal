@@ -22,6 +22,7 @@ import 'package:flauncher/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flauncher/providers/notifications_service.dart';
+import 'package:flauncher/providers/settings_service.dart';
 import 'focusable_settings_tile.dart';
 import 'brightness_settings_page.dart';
 import 'date_time_format_page.dart';
@@ -53,6 +54,34 @@ class GeneralSettingsPage extends StatelessWidget {
                   leading: const Icon(Icons.brightness_6),
                   title: Text('Brightness Scheduler', style: Theme.of(context).textTheme.bodyMedium),
                   onPressed: () => Navigator.of(context).pushNamed(BrightnessSettingsPage.routeName),
+                ),
+                Consumer<SettingsService>(
+                  builder: (context, settings, _) => FocusableSettingsTile(
+                    leading: const Icon(Icons.screen_rotation),
+                    title: Text('Orientation', style: Theme.of(context).textTheme.bodyMedium),
+                    trailing: Text(
+                      settings.orientation == ORIENTATION_PORTRAIT ? 'Portrait' : 'Landscape',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    onPressed: () => settings.setOrientation(
+                      settings.orientation == ORIENTATION_PORTRAIT
+                          ? ORIENTATION_LANDSCAPE
+                          : ORIENTATION_PORTRAIT,
+                    ),
+                  ),
+                ),
+                Consumer<SettingsService>(
+                  builder: (context, settings, _) => FocusableSettingsTile(
+                    leading: const Icon(Icons.lightbulb_outline),
+                    title: Text('Keep Screen On', style: Theme.of(context).textTheme.bodyMedium),
+                    trailing: Text(
+                      settings.keepScreenOn ? 'On' : 'Off',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: settings.keepScreenOn ? Colors.green : Colors.grey,
+                          ),
+                    ),
+                    onPressed: () => settings.setKeepScreenOn(!settings.keepScreenOn),
+                  ),
                 ),
                 FocusableSettingsTile(
                   leading: const Icon(Icons.screenshot_monitor),

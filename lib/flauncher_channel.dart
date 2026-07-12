@@ -118,6 +118,18 @@ class FLauncherChannel {
 
   Future<void> startAmbientMode() async => await _methodChannel.invokeMethod("startAmbientMode");
 
+  Future<void> setOrientation(String orientation) async {
+    try {
+      await _methodChannel.invokeMethod("setOrientation", orientation);
+    } catch (_) {}
+  }
+
+  Future<void> setKeepScreenOn(bool on) async {
+    try {
+      await _methodChannel.invokeMethod("setKeepScreenOn", on);
+    } catch (_) {}
+  }
+
   void addAppsChangedListener(void Function(Map<String, dynamic>) listener) =>
       _appsEventChannel.receiveBroadcastStream().listen((event) {
         Map<dynamic, dynamic> eventMap = event;

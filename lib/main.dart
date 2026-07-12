@@ -45,14 +45,20 @@ Future<void> main() async {
   final fLauncherChannel = FLauncherChannel();
   final fLauncherDatabase = FLauncherDatabase(connect());
 
+  final settingsService = SettingsService(sharedPreferences);
+  void applyDeviceSettings() {
+    fLauncherChannel.setOrientation(settingsService.orientation);
+    fLauncherChannel.setKeepScreenOn(settingsService.keepScreenOn);
+  }
+  applyDeviceSettings();
+  settingsService.addListener(applyDeviceSettings);
+
   runApp(MultiProvider(
       providers: [
         Provider<BackupService>(
           create: (_) => BackupService(fLauncherDatabase, sharedPreferences),
         ),
-        ChangeNotifierProvider(
-            create: (_) => SettingsService(sharedPreferences),
-            lazy: false),
+        ChangeNotifierProvider.value(value: settingsService),
         ChangeNotifierProvider(create: (_) => AppsService(fLauncherChannel, fLauncherDatabase)),
         ChangeNotifierProvider(create: (_) => LauncherState()),
         ChangeNotifierProvider(create: (_) => NetworkService(fLauncherChannel)),

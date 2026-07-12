@@ -21,6 +21,7 @@ package com.leanbitlab.ltvL;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.*;
+import android.view.WindowManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
@@ -176,6 +177,16 @@ public class MainActivity extends FlutterActivity {
                 case "getPackageName" -> result.success(getPackageName());
                 case "playClickSound" -> {
                     getWindow().getDecorView().playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    result.success(null);
+                }
+                case "setOrientation" -> {
+                    String orientation = call.arguments();
+                    setActivityOrientation(orientation);
+                    result.success(null);
+                }
+                case "setKeepScreenOn" -> {
+                    boolean on = Boolean.TRUE.equals(call.arguments());
+                    setKeepScreenOn(on);
                     result.success(null);
                 }
                 default -> throw new IllegalArgumentException();
@@ -1193,6 +1204,38 @@ public class MainActivity extends FlutterActivity {
     }
 
 
+
+    private static final String PREFS_NAME = "FlutterSharedPreferences";
+    private static final String KEY_ORIENTATION = "flutter.orientation";
+    private static final String KEY_KEEP_SCREEN_ON = "flutter.keep_screen_on";
+
+    @Override
+    protected void onCreate(android.os.Bundle savedInstanceState) {
+        android.content.SharedPreferences prefs =
+                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String orientation = prefs.getString(KEY_ORIENTATION, "landscape");
+        boolean keepOn = prefs.getBoolean(KEY_KEEP_SCREEN_ON, true);
+        setActivityOrientation(orientation);
+        setKeepScreenOn(keepOn);
+        super.onCreate(savedInstanceState);
+    }
+
+    private void setActivityOrientation(String orientation) {
+        int mode = "portrait".equalsIgnoreCase(orientation)
+                ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+        runOnUiThread(() -> setRequestedOrientation(mode));
+    }
+
+    private void setKeepScreenOn(boolean on) {
+        runOnUiThread(() -> {
+            if (on) {
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            } else {
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        });
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
