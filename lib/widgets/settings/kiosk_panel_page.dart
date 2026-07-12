@@ -94,7 +94,7 @@ class KioskPanelPage extends StatelessWidget {
           _durationOption(ctx, '4 hours', const Duration(hours: 4)),
           SimpleDialogOption(
             onPressed: () => Navigator.of(ctx).pop(null),
-            child: const Text('Until manually turned off'),
+            child: const Text('Lock'),
           ),
           SimpleDialogOption(
             onPressed: () => Navigator.of(ctx).pop(const Duration()),
