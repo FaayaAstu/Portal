@@ -19,6 +19,7 @@
 
 import 'package:flauncher/actions.dart';
 import 'package:flauncher/custom_traversal_policy.dart';
+import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/launcher_state.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
@@ -44,6 +45,22 @@ class FLauncher extends StatefulWidget {
 
 class _FLauncherState extends State<FLauncher> {
   final GlobalKey<FocusAwareAppBarState> _appBarKey = GlobalKey();
+  static bool _autoLaunched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_autoLaunched) {
+      _autoLaunched = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final settings = Provider.of<SettingsService>(context, listen: false);
+        final pkg = settings.autoLaunchPackage;
+        if (pkg != null && pkg.isNotEmpty) {
+          FLauncherChannel().launchApp(pkg);
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Actions(

@@ -49,6 +49,7 @@ const String _showNotificationsWidgetInStatusBarKey = "show_notifications_widget
 const String _autoHideNotificationsWidgetKey = "auto_hide_notifications_widget";
 const String _orientationKey = "orientation";
 const String _keepScreenOnKey = "keep_screen_on";
+const String _autoLaunchPackageKey = "auto_launch_package";
 
 const String ORIENTATION_LANDSCAPE = "landscape";
 const String ORIENTATION_PORTRAIT = "portrait";
@@ -106,6 +107,7 @@ class SettingsService extends ChangeNotifier {
   late bool _autoHideNotificationsWidget;
   late String _orientation;
   late bool _keepScreenOn;
+  String? _autoLaunchPackage;
 
   bool get appHighlightAnimationEnabled => _appHighlightAnimationEnabled;
 
@@ -148,6 +150,7 @@ class SettingsService extends ChangeNotifier {
 
   String get orientation => _orientation;
   bool get keepScreenOn => _keepScreenOn;
+  String? get autoLaunchPackage => _autoLaunchPackage;
 
   String get accentColorHex => _accentColorHex;
 
@@ -189,6 +192,18 @@ class SettingsService extends ChangeNotifier {
     _autoHideNotificationsWidget = _sharedPreferences.getBool(_autoHideNotificationsWidgetKey) ?? false;
     _orientation = _sharedPreferences.getString(_orientationKey) ?? ORIENTATION_LANDSCAPE;
     _keepScreenOn = _sharedPreferences.getBool(_keepScreenOnKey) ?? true;
+    _autoLaunchPackage = _sharedPreferences.getString(_autoLaunchPackageKey);
+    notifyListeners();
+  }
+
+  Future<void> setAutoLaunchPackage(String? value) async {
+    if (value == null || value.isEmpty) {
+      await _sharedPreferences.remove(_autoLaunchPackageKey);
+      _autoLaunchPackage = null;
+    } else {
+      await _sharedPreferences.setString(_autoLaunchPackageKey, value);
+      _autoLaunchPackage = value;
+    }
     notifyListeners();
   }
 

@@ -30,6 +30,7 @@ import 'back_button_action_page.dart';
 import 'data_usage_period_page.dart';
 import 'screensaver_clock_style_page.dart';
 import 'backup_restore_page.dart';
+import 'auto_launch_page.dart';
 
 
 class GeneralSettingsPage extends StatelessWidget {
@@ -81,6 +82,17 @@ class GeneralSettingsPage extends StatelessWidget {
                           ),
                     ),
                     onPressed: () => settings.setKeepScreenOn(!settings.keepScreenOn),
+                  ),
+                ),
+                Consumer<SettingsService>(
+                  builder: (context, settings, _) => FocusableSettingsTile(
+                    leading: const Icon(Icons.rocket_launch),
+                    title: Text('Auto-Launch on Boot', style: Theme.of(context).textTheme.bodyMedium),
+                    trailing: Text(
+                      settings.autoLaunchPackage ?? 'None',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    onPressed: () => Navigator.of(context).pushNamed(AutoLaunchPage.routeName),
                   ),
                 ),
                 FocusableSettingsTile(
