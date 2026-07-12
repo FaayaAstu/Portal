@@ -52,6 +52,7 @@ const String _keepScreenOnKey = "keep_screen_on";
 const String _autoLaunchPackageKey = "auto_launch_package";
 const String _kioskEnabledKey = "kiosk_enabled";
 const String _kioskPinKey = "kiosk_pin";
+const String _kioskExpiresAtKey = "kiosk_expires_at";
 const String _kioskDefaultPin = "0000";
 
 const String ORIENTATION_LANDSCAPE = "landscape";
@@ -113,6 +114,7 @@ class SettingsService extends ChangeNotifier {
   String? _autoLaunchPackage;
   late bool _kioskEnabled;
   late String _kioskPin;
+  int _kioskExpiresAt = 0; // ms since epoch; 0 = no expiry
 
   bool get appHighlightAnimationEnabled => _appHighlightAnimationEnabled;
 
@@ -158,6 +160,8 @@ class SettingsService extends ChangeNotifier {
   String? get autoLaunchPackage => _autoLaunchPackage;
   bool get kioskEnabled => _kioskEnabled;
   String get kioskPin => _kioskPin;
+  DateTime? get kioskExpiresAt =>
+      _kioskExpiresAt == 0 ? null : DateTime.fromMillisecondsSinceEpoch(_kioskExpiresAt);
 
   String get accentColorHex => _accentColorHex;
 
@@ -202,13 +206,28 @@ class SettingsService extends ChangeNotifier {
     _autoLaunchPackage = _sharedPreferences.getString(_autoLaunchPackageKey);
     _kioskEnabled = _sharedPreferences.getBool(_kioskEnabledKey) ?? false;
     _kioskPin = _sharedPreferences.getString(_kioskPinKey) ?? _kioskDefaultPin;
+    _kioskExpiresAt = _sharedPreferences.getInt(_kioskExpiresAtKey) ?? 0;
     notifyListeners();
   }
 
-  Future<void> setKioskEnabled(bool value) async {
+  /// Enable kiosk permanently or until [expiresAt]. Pass null / omit to
+  /// keep it on until manually disabled.
+  Future<void> setKioskEnabled(bool value, {DateTime? expiresAt}) async {
     await _sharedPreferences.setBool(_kioskEnabledKey, value);
     _kioskEnabled = value;
+    final expiryMs = value && expiresAt != null ? expiresAt.millisecondsSinceEpoch : 0;
+    await _sharedPreferences.setInt(_kioskExpiresAtKey, expiryMs);
+    _kioskExpiresAt = expiryMs;
     notifyListeners();
+  }
+
+  /// If a timed-kiosk expiry has passed, flip the state off and persist.
+  /// Returns true if the check caused a state change.
+  Future<bool> enforceKioskExpiry() async {
+    if (!_kioskEnabled || _kioskExpiresAt == 0) return false;
+    if (DateTime.now().millisecondsSinceEpoch < _kioskExpiresAt) return false;
+    await setKioskEnabled(false);
+    return true;
   }
 
   Future<void> setKioskPin(String value) async {

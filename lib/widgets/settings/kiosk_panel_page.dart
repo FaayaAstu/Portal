@@ -1,5 +1,6 @@
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'auto_launch_page.dart';
@@ -37,12 +38,14 @@ class KioskPanelPage extends StatelessWidget {
                     leading: const Icon(Icons.lock),
                     title: Text('Kiosk Mode', style: Theme.of(context).textTheme.bodyMedium),
                     trailing: Text(
-                      settings.kioskEnabled ? 'On' : 'Off',
+                      _kioskStatus(settings),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: settings.kioskEnabled ? Colors.green : Colors.grey,
                           ),
                     ),
-                    onPressed: () => _confirmEnableKiosk(context, settings),
+                    onPressed: () => settings.kioskEnabled
+                        ? _confirmDisableKiosk(context, settings)
+                        : _pickDurationAndEnable(context, settings),
                   ),
                 ),
                 Consumer<SettingsService>(
@@ -60,8 +63,14 @@ class KioskPanelPage extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmEnableKiosk(BuildContext context, SettingsService settings) async {
-    if (settings.kioskEnabled) return;
+  String _kioskStatus(SettingsService settings) {
+    if (!settings.kioskEnabled) return 'Off';
+    final expiresAt = settings.kioskExpiresAt;
+    if (expiresAt == null) return 'On';
+    return 'On until ${DateFormat.jm().format(expiresAt.toLocal())}';
+  }
+
+  Future<void> _pickDurationAndEnable(BuildContext context, SettingsService settings) async {
     final target = settings.autoLaunchPackage;
     if (target == null || target.isEmpty) {
       showDialog(
@@ -74,22 +83,50 @@ class KioskPanelPage extends StatelessWidget {
       );
       return;
     }
+    // Duration in minutes; null = until manually turned off.
+    final choice = await showDialog<Duration?>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Enable Kiosk for how long?'),
+        children: [
+          _durationOption(ctx, '15 minutes', const Duration(minutes: 15)),
+          _durationOption(ctx, '1 hour', const Duration(hours: 1)),
+          _durationOption(ctx, '4 hours', const Duration(hours: 4)),
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(ctx).pop(null),
+            child: const Text('Until manually turned off'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(ctx).pop(const Duration()),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+    if (choice == null) {
+      await settings.setKioskEnabled(true);
+    } else if (choice.inSeconds > 0) {
+      await settings.setKioskEnabled(true, expiresAt: DateTime.now().add(choice));
+    }
+  }
+
+  Widget _durationOption(BuildContext ctx, String label, Duration d) =>
+      SimpleDialogOption(onPressed: () => Navigator.of(ctx).pop(d), child: Text(label));
+
+  Future<void> _confirmDisableKiosk(BuildContext context, SettingsService settings) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Enable Kiosk Mode?'),
-        content: Text(
-          'Once enabled, the launcher will only be reachable by entering the PIN. '
-          'Current PIN: ${settings.kioskPin} (change under "Change Kiosk PIN").',
-        ),
+        title: const Text('Disable Kiosk Mode?'),
+        content: const Text('The launcher will be reachable without a PIN until you re-enable kiosk.'),
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Enable')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Disable')),
         ],
       ),
     );
     if (ok == true) {
-      await settings.setKioskEnabled(true);
+      await settings.setKioskEnabled(false);
     }
   }
 

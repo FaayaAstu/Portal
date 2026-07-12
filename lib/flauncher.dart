@@ -19,6 +19,8 @@
 
 import 'package:flauncher/actions.dart';
 import 'package:flauncher/custom_traversal_policy.dart';
+import 'dart:async';
+
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/launcher_state.dart';
@@ -49,32 +51,44 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   static bool _coldBootHandled = false;
   bool _kioskBypassed = false;
 
+  Timer? _kioskExpiryTicker;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_coldBootHandled || !mounted) return;
-      _coldBootHandled = true;
+      if (!mounted) return;
       final settings = Provider.of<SettingsService>(context, listen: false);
-      final pkg = settings.autoLaunchPackage;
-      if (pkg != null && pkg.isNotEmpty) {
-        FLauncherChannel().launchApp(pkg);
+      settings.enforceKioskExpiry();
+      if (!_coldBootHandled) {
+        _coldBootHandled = true;
+        final pkg = settings.autoLaunchPackage;
+        if (pkg != null && pkg.isNotEmpty) {
+          FLauncherChannel().launchApp(pkg);
+        }
       }
+    });
+    _kioskExpiryTicker = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (!mounted) return;
+      Provider.of<SettingsService>(context, listen: false).enforceKioskExpiry();
     });
   }
 
   @override
   void dispose() {
+    _kioskExpiryTicker?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Re-arm the kiosk overlay whenever the launcher comes back to the
-    // foreground (user launched an app and returned).
-    if (state == AppLifecycleState.resumed && _kioskBypassed) {
+    if (state != AppLifecycleState.resumed) return;
+    // Kiosk timer may have expired while we were backgrounded.
+    Provider.of<SettingsService>(context, listen: false).enforceKioskExpiry();
+    // Re-arm the overlay after any return from an app.
+    if (_kioskBypassed) {
       setState(() => _kioskBypassed = false);
     }
   }
