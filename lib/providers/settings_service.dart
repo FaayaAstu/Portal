@@ -50,6 +50,9 @@ const String _autoHideNotificationsWidgetKey = "auto_hide_notifications_widget";
 const String _orientationKey = "orientation";
 const String _keepScreenOnKey = "keep_screen_on";
 const String _autoLaunchPackageKey = "auto_launch_package";
+const String _kioskEnabledKey = "kiosk_enabled";
+const String _kioskPinKey = "kiosk_pin";
+const String _kioskDefaultPin = "0000";
 
 const String ORIENTATION_LANDSCAPE = "landscape";
 const String ORIENTATION_PORTRAIT = "portrait";
@@ -108,6 +111,8 @@ class SettingsService extends ChangeNotifier {
   late String _orientation;
   late bool _keepScreenOn;
   String? _autoLaunchPackage;
+  late bool _kioskEnabled;
+  late String _kioskPin;
 
   bool get appHighlightAnimationEnabled => _appHighlightAnimationEnabled;
 
@@ -151,6 +156,8 @@ class SettingsService extends ChangeNotifier {
   String get orientation => _orientation;
   bool get keepScreenOn => _keepScreenOn;
   String? get autoLaunchPackage => _autoLaunchPackage;
+  bool get kioskEnabled => _kioskEnabled;
+  String get kioskPin => _kioskPin;
 
   String get accentColorHex => _accentColorHex;
 
@@ -193,6 +200,20 @@ class SettingsService extends ChangeNotifier {
     _orientation = _sharedPreferences.getString(_orientationKey) ?? ORIENTATION_LANDSCAPE;
     _keepScreenOn = _sharedPreferences.getBool(_keepScreenOnKey) ?? true;
     _autoLaunchPackage = _sharedPreferences.getString(_autoLaunchPackageKey);
+    _kioskEnabled = _sharedPreferences.getBool(_kioskEnabledKey) ?? false;
+    _kioskPin = _sharedPreferences.getString(_kioskPinKey) ?? _kioskDefaultPin;
+    notifyListeners();
+  }
+
+  Future<void> setKioskEnabled(bool value) async {
+    await _sharedPreferences.setBool(_kioskEnabledKey, value);
+    _kioskEnabled = value;
+    notifyListeners();
+  }
+
+  Future<void> setKioskPin(String value) async {
+    await _sharedPreferences.setString(_kioskPinKey, value);
+    _kioskPin = value;
     notifyListeners();
   }
 

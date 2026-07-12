@@ -27,6 +27,7 @@ import 'package:flauncher/widgets/apps_grid.dart';
 import 'package:flauncher/widgets/category_row.dart';
 import 'package:flauncher/widgets/launcher_alternative_view.dart';
 import 'package:flauncher/widgets/focus_aware_app_bar.dart';
+import 'package:flauncher/widgets/kiosk_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/widgets/continue_watching_row.dart';
@@ -45,21 +46,20 @@ class FLauncher extends StatefulWidget {
 
 class _FLauncherState extends State<FLauncher> {
   final GlobalKey<FocusAwareAppBarState> _appBarKey = GlobalKey();
-  static bool _autoLaunched = false;
+  static bool _coldBootHandled = false;
 
   @override
   void initState() {
     super.initState();
-    if (!_autoLaunched) {
-      _autoLaunched = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final settings = Provider.of<SettingsService>(context, listen: false);
-        final pkg = settings.autoLaunchPackage;
-        if (pkg != null && pkg.isNotEmpty) {
-          FLauncherChannel().launchApp(pkg);
-        }
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_coldBootHandled || !mounted) return;
+      _coldBootHandled = true;
+      final settings = Provider.of<SettingsService>(context, listen: false);
+      final pkg = settings.autoLaunchPackage;
+      if (pkg != null && pkg.isNotEmpty) {
+        FLauncherChannel().launchApp(pkg);
+      }
+    });
   }
 
   @override
@@ -111,7 +111,12 @@ class _FLauncherState extends State<FLauncher> {
                 )
               )
             )
-          )
+          ),
+          Consumer<SettingsService>(
+            builder: (_, settings, __) => settings.kioskEnabled
+                ? const Positioned.fill(child: KioskOverlay())
+                : const SizedBox.shrink(),
+          ),
         ]
       )
     ),
