@@ -9,7 +9,11 @@ import 'package:provider/provider.dart';
 /// Blocks the launcher when kiosk mode is on. Auto-returns to the target
 /// after a short window; the operator can enter the PIN to disable kiosk.
 class KioskOverlay extends StatefulWidget {
-  const KioskOverlay({super.key});
+  /// Called when the operator enters the correct PIN. Caller decides
+  /// what "unlocked" means — one-shot bypass, permanent disable, etc.
+  final VoidCallback onUnlock;
+
+  const KioskOverlay({super.key, required this.onUnlock});
 
   @override
   State<KioskOverlay> createState() => _KioskOverlayState();
@@ -81,7 +85,7 @@ class _KioskOverlayState extends State<KioskOverlay> with WidgetsBindingObserver
     final settings = context.read<SettingsService>();
     if (_entered == settings.kioskPin) {
       _autoReturn?.cancel();
-      settings.setKioskEnabled(false);
+      widget.onUnlock();
     } else {
       setState(() {
         _error = 'Incorrect PIN';

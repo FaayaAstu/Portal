@@ -44,13 +44,15 @@ class FLauncher extends StatefulWidget {
   State<FLauncher> createState() => _FLauncherState();
 }
 
-class _FLauncherState extends State<FLauncher> {
+class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   final GlobalKey<FocusAwareAppBarState> _appBarKey = GlobalKey();
   static bool _coldBootHandled = false;
+  bool _kioskBypassed = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_coldBootHandled || !mounted) return;
       _coldBootHandled = true;
@@ -60,6 +62,21 @@ class _FLauncherState extends State<FLauncher> {
         FLauncherChannel().launchApp(pkg);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Re-arm the kiosk overlay whenever the launcher comes back to the
+    // foreground (user launched an app and returned).
+    if (state == AppLifecycleState.resumed && _kioskBypassed) {
+      setState(() => _kioskBypassed = false);
+    }
   }
 
   @override
@@ -113,8 +130,12 @@ class _FLauncherState extends State<FLauncher> {
             )
           ),
           Consumer<SettingsService>(
-            builder: (_, settings, __) => settings.kioskEnabled
-                ? const Positioned.fill(child: KioskOverlay())
+            builder: (_, settings, __) => (settings.kioskEnabled && !_kioskBypassed)
+                ? Positioned.fill(
+                    child: KioskOverlay(
+                      onUnlock: () => setState(() => _kioskBypassed = true),
+                    ),
+                  )
                 : const SizedBox.shrink(),
           ),
         ]
