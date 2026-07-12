@@ -22,6 +22,7 @@ import 'package:flauncher/widgets/settings/applications_panel_page.dart';
 import 'package:flauncher/widgets/settings/flauncher_about_dialog.dart';
 import 'package:flauncher/widgets/settings/interface_settings_page.dart';
 import 'package:flauncher/widgets/settings/general_settings_page.dart';
+import 'package:flauncher/widgets/settings/kiosk_panel_page.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -59,6 +60,11 @@ class SettingsPanelPage extends StatelessWidget {
                   leading: const Icon(Icons.settings_suggest_outlined),
                   title: Text('System', style: Theme.of(context).textTheme.bodyMedium),
                   onPressed: () => Navigator.of(context).pushNamed(GeneralSettingsPage.routeName),
+                ),
+                FocusableSettingsTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: Text('Kiosk', style: Theme.of(context).textTheme.bodyMedium),
+                  onPressed: () => Navigator.of(context).pushNamed(KioskPanelPage.routeName),
                 ),
                 FocusableSettingsTile(
                   leading: const Icon(Icons.accessibility_new),

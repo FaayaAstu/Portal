@@ -38,6 +38,7 @@ import 'package:flauncher/widgets/settings/themes_page.dart';
 import 'package:flauncher/widgets/settings/accessibility_page.dart';
 import 'package:flauncher/widgets/settings/backup_restore_page.dart';
 import 'package:flauncher/widgets/settings/auto_launch_page.dart';
+import 'package:flauncher/widgets/settings/kiosk_panel_page.dart';
 import 'package:flauncher/models/app.dart';
 import 'package:flutter/material.dart';
 
@@ -116,6 +117,8 @@ class _SettingsPanelState extends State<SettingsPanel> {
                       return _FastPageRoute(builder: (_) => const BackupRestorePage());
                     case AutoLaunchPage.routeName:
                       return _FastPageRoute(builder: (_) => const AutoLaunchPage());
+                    case KioskPanelPage.routeName:
+                      return _FastPageRoute(builder: (_) => const KioskPanelPage());
                     case AppDetailsPage.routeName:
                       return _FastPageRoute(
                           builder: (_) => AppDetailsPage(application: settings.arguments as App));
