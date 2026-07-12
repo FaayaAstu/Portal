@@ -66,25 +66,25 @@ class KioskPanelPage extends StatelessWidget {
     if (target == null || target.isEmpty) {
       showDialog(
         context: context,
-        builder: (_) => AlertDialog(
+        builder: (ctx) => AlertDialog(
           title: const Text('Set Auto-Launch first'),
           content: const Text('Kiosk Mode requires an auto-launch app. Pick one under "Auto-Launch on Boot".'),
-          actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
+          actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
         ),
       );
       return;
     }
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Enable Kiosk Mode?'),
         content: Text(
           'Once enabled, the launcher will only be reachable by entering the PIN. '
           'Current PIN: ${settings.kioskPin} (change under "Change Kiosk PIN").',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Enable')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Enable')),
         ],
       ),
     );
