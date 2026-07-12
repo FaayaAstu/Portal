@@ -57,6 +57,7 @@ secretProperties.setProperty("signing_key_password", "${System.getenv('FLAUNCHER
 secretProperties.setProperty("signing_key_alias", "${System.getenv('FLAUNCHER_SIGNING_KEY_ALIAS')}")
 
 android {
+    ndkVersion "29.0.14206865"
     dependenciesInfo {
         // Disables dependency metadata when building APKs (for IzzyOnDroid/F-Droid)
         includeInApk = false
@@ -67,7 +68,7 @@ android {
     defaultConfig {
         applicationId "com.leanbitlab.ltvL"
         compileSdk 35
-        minSdk 21
+        minSdkVersion flutter.minSdkVersion
         targetSdk 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

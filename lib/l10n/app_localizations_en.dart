@@ -1,3 +1,5 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -64,7 +66,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dialogOptionBackButtonActionShowClock => 'Show clock';
 
   @override
-  String get dialogTextNoFileExplorer => 'Please install a file explorer in order to pick a picture.';
+  String get dialogTextNoFileExplorer =>
+      'Please install a file explorer in order to pick a picture.';
 
   @override
   String get dialogTitleBackButtonAction => 'Choose the back button action';
@@ -168,7 +171,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacer => 'Spacer';
 
   @override
-  String get spacerMaxHeightRequirement => 'Must be greater than 0 and less than or equal to 500';
+  String get spacerMaxHeightRequirement =>
+      'Must be greater than 0 and less than or equal to 500';
 
   @override
   String get statusBar => 'Status bar';
@@ -186,10 +190,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themes => 'Themes';
 
   @override
-  String get hideHighlightOutlineOnHomescreen => 'Hide highlight outline on homescreen';
+  String get hideHighlightOutlineOnHomescreen =>
+      'Hide highlight outline on homescreen';
 
   @override
-  String get appSelectorTransitionAnimation => 'App selector transition animation';
+  String get appSelectorTransitionAnimation =>
+      'App selector transition animation';
 
   @override
   String get sort => 'Sort';
@@ -209,7 +215,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get time => 'Time';
 
   @override
-  String get titleStatusBarSettingsPage => 'Choose what to display in the status bar';
+  String get titleStatusBarSettingsPage =>
+      'Choose what to display in the status bar';
 
   @override
   String get tvApplications => 'TV Apps';
@@ -248,13 +255,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get defaultLauncherIsDefault => 'LTvLauncher is the default launcher';
 
   @override
-  String get defaultLauncherNotDefault => 'LTvLauncher is not the default launcher';
+  String get defaultLauncherNotDefault =>
+      'LTvLauncher is not the default launcher';
 
   @override
   String get setAsDefaultLauncher => 'Set as default launcher';
 
   @override
-  String get defaultLauncherDescription => 'When set as the default launcher, the Home button will always return to LTvLauncher. The TV will also boot directly into LTvLauncher.';
+  String get defaultLauncherDescription =>
+      'When set as the default launcher, the Home button will always return to LTvLauncher. The TV will also boot directly into LTvLauncher.';
 
   @override
   String get inputs => 'Inputs';
@@ -280,7 +289,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importSuccess => 'Backup imported successfully';
 
   @override
-  String get importConfirm => 'Are you sure you want to import the backup? This will overwrite your current settings and layout.';
+  String get importConfirm =>
+      'Are you sure you want to import the backup? This will overwrite your current settings and layout.';
 
   @override
   String importError(String error) {
@@ -296,7 +306,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareBackup => 'Share Backup';
 
   @override
-  String get shareBackupDescription => 'Share backup with other devices on local network';
+  String get shareBackupDescription =>
+      'Share backup with other devices on local network';
 
   @override
   String get stopSharing => 'Stop Sharing';
@@ -305,10 +316,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get localNetworkSharingActive => 'Local network sharing is active!';
 
   @override
-  String get localNetworkSharingInstructions => 'Connect another device to the same Wi-Fi network and open the following URL in a web browser:';
+  String get localNetworkSharingInstructions =>
+      'Connect another device to the same Wi-Fi network and open the following URL in a web browser:';
 
   @override
-  String get localNetworkSharingDetails => 'Here you can download your TV settings/layout or upload a backup file back to this TV.';
+  String get localNetworkSharingDetails =>
+      'Here you can download your TV settings/layout or upload a backup file back to this TV.';
 
   @override
   String failedToStartServer(String error) {
@@ -328,5 +341,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showContinueWatchingOnHome => 'Show Continue Watching on Home';
 
   @override
-  String get permissionDeniedContinueWatching => 'Permission required to show Continue Watching';
+  String get permissionDeniedContinueWatching =>
+      'Permission required to show Continue Watching';
 }
