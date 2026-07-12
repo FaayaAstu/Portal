@@ -15,10 +15,11 @@ class KioskOverlay extends StatefulWidget {
   State<KioskOverlay> createState() => _KioskOverlayState();
 }
 
-class _KioskOverlayState extends State<KioskOverlay> {
+class _KioskOverlayState extends State<KioskOverlay> with WidgetsBindingObserver {
   static const _autoReturnDelay = Duration(seconds: 15);
 
   final _channel = FLauncherChannel();
+  final _scopeNode = FocusScopeNode(debugLabel: 'KioskOverlay');
   String _entered = '';
   String? _error;
   Timer? _autoReturn;
@@ -26,13 +27,29 @@ class _KioskOverlayState extends State<KioskOverlay> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scheduleAutoReturn();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) FocusScope.of(context).setFirstFocus(_scopeNode);
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoReturn?.cancel();
+    _scopeNode.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Don't try to relaunch target from the background — Android blocks it.
+    if (state != AppLifecycleState.resumed) {
+      _autoReturn?.cancel();
+    } else {
+      _scheduleAutoReturn();
+    }
   }
 
   void _scheduleAutoReturn() {
@@ -83,7 +100,10 @@ class _KioskOverlayState extends State<KioskOverlay> {
   @override
   Widget build(BuildContext context) {
     final pinLength = context.watch<SettingsService>().kioskPin.length;
-    return Material(
+    return FocusScope(
+      node: _scopeNode,
+      autofocus: true,
+      child: Material(
       color: Colors.black,
       child: Center(
         child: SingleChildScrollView(
@@ -139,6 +159,7 @@ class _KioskOverlayState extends State<KioskOverlay> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
