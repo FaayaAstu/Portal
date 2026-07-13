@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'auto_launch_page.dart';
 import 'brand_name_page.dart';
 import 'focusable_settings_tile.dart';
+import 'kiosk_enable_page.dart';
+import 'pin_change_page.dart';
 
 class KioskPanelPage extends StatelessWidget {
   static const String routeName = "kiosk_panel";
@@ -53,7 +55,9 @@ class KioskPanelPage extends StatelessWidget {
                   builder: (context, settings, _) => FocusableSettingsTile(
                     leading: const Icon(Icons.pin),
                     title: Text('Change Kiosk PIN', style: Theme.of(context).textTheme.bodyMedium),
-                    onPressed: () => _changePinDialog(context, settings),
+                    onPressed: () => Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(builder: (_) => const PinChangePage()),
+                    ),
                   ),
                 ),
                 Consumer<SettingsService>(
@@ -87,102 +91,115 @@ class KioskPanelPage extends StatelessWidget {
   Future<void> _pickDurationAndEnable(BuildContext context, SettingsService settings) async {
     final target = settings.autoLaunchPackage;
     if (target == null || target.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Set Auto-Launch first'),
-          content: const Text('Kiosk Mode requires an auto-launch app. Pick one under "Auto-Launch on Boot".'),
-          actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
-        ),
+      await Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute(builder: (_) => const _NeedsAutoLaunchPage()),
       );
       return;
     }
-    // Duration in minutes; null = until manually turned off.
-    final choice = await showDialog<Duration?>(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text('Enable Kiosk for how long?'),
-        children: [
-          _durationOption(ctx, '15 minutes', const Duration(minutes: 15)),
-          _durationOption(ctx, '1 hour', const Duration(hours: 1)),
-          _durationOption(ctx, '4 hours', const Duration(hours: 4)),
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(ctx).pop(null),
-            child: const Text('Lock'),
-          ),
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(ctx).pop(const Duration()),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(builder: (_) => const KioskEnablePage()),
     );
-    if (choice == null) {
-      await settings.setKioskEnabled(true);
-    } else if (choice.inSeconds > 0) {
-      await settings.setKioskEnabled(true, expiresAt: DateTime.now().add(choice));
-    }
   }
-
-  Widget _durationOption(BuildContext ctx, String label, Duration d) =>
-      SimpleDialogOption(onPressed: () => Navigator.of(ctx).pop(d), child: Text(label));
 
   Future<void> _confirmDisableKiosk(BuildContext context, SettingsService settings) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Disable Kiosk Mode?'),
-        content: const Text('The launcher will be reachable without a PIN until you re-enable kiosk.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Disable')),
-        ],
-      ),
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(builder: (_) => const _DisableKioskPage()),
     );
-    if (ok == true) {
-      await settings.setKioskEnabled(false);
-    }
   }
+}
 
-  Future<void> _changePinDialog(BuildContext context, SettingsService settings) async {
-    final controller = TextEditingController();
-    String? error;
-    final ok = await showDialog<String>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          title: const Text('Change Kiosk PIN'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: TextInputType.number,
-                maxLength: 8,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'New PIN (4-8 digits)'),
-              ),
-              if (error != null) Text(error!, style: const TextStyle(color: Colors.redAccent)),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
-            TextButton(
-              onPressed: () {
-                final v = controller.text;
-                if (v.length < 4 || v.length > 8 || int.tryParse(v) == null) {
-                  setState(() => error = 'PIN must be 4-8 digits');
-                  return;
-                }
-                Navigator.of(ctx).pop(v);
-              },
-              child: const Text('Save'),
+class _NeedsAutoLaunchPage extends StatelessWidget {
+  const _NeedsAutoLaunchPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black.withValues(alpha: 0.9),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Set Auto-Launch first'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Kiosk Mode requires an auto-launch app. Pick one under "Auto-Launch on Boot".',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+            ),
+            const SizedBox(height: 24),
+            FocusableActionButton(
+              autofocus: true,
+              label: 'OK',
+              primary: true,
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
       ),
     );
-    if (ok != null) await settings.setKioskPin(ok);
+  }
+}
+
+class _DisableKioskPage extends StatelessWidget {
+  const _DisableKioskPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black.withValues(alpha: 0.9),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Disable Kiosk Mode?'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: FocusTraversalGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'The launcher will be reachable without a PIN until you re-enable kiosk.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: FocusableActionButton(
+                      autofocus: true,
+                      label: 'Cancel',
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: FocusableActionButton(
+                      label: 'Disable',
+                      primary: true,
+                      onPressed: () async {
+                        await context.read<SettingsService>().setKioskEnabled(false);
+                        if (context.mounted) Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
