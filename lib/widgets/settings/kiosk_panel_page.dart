@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'auto_launch_page.dart';
+import 'brand_name_page.dart';
 import 'focusable_settings_tile.dart';
 
 class KioskPanelPage extends StatelessWidget {
@@ -63,7 +64,9 @@ class KioskPanelPage extends StatelessWidget {
                       settings.brandName,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    onPressed: () => _changeBrandDialog(context, settings),
+                    onPressed: () => Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(builder: (_) => const BrandNamePage()),
+                    ),
                   ),
                 ),
               ],
@@ -139,30 +142,6 @@ class KioskPanelPage extends StatelessWidget {
     if (ok == true) {
       await settings.setKioskEnabled(false);
     }
-  }
-
-  Future<void> _changeBrandDialog(BuildContext context, SettingsService settings) async {
-    final controller = TextEditingController(text: settings.brandName);
-    final ok = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Brand Name'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 24,
-          decoration: const InputDecoration(labelText: 'Shown on home screen'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    if (ok != null) await settings.setBrandName(ok);
   }
 
   Future<void> _changePinDialog(BuildContext context, SettingsService settings) async {
