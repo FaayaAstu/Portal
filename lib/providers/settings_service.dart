@@ -54,6 +54,8 @@ const String _kioskEnabledKey = "kiosk_enabled";
 const String _kioskPinKey = "kiosk_pin";
 const String _kioskExpiresAtKey = "kiosk_expires_at";
 const String _kioskDefaultPin = "0000";
+const String _brandNameKey = "brand_name";
+const String _brandDefault = "FAAYA";
 
 const String ORIENTATION_LANDSCAPE = "landscape";
 const String ORIENTATION_PORTRAIT = "portrait";
@@ -115,6 +117,7 @@ class SettingsService extends ChangeNotifier {
   late bool _kioskEnabled;
   late String _kioskPin;
   int _kioskExpiresAt = 0; // ms since epoch; 0 = no expiry
+  late String _brandName;
 
   bool get appHighlightAnimationEnabled => _appHighlightAnimationEnabled;
 
@@ -162,6 +165,7 @@ class SettingsService extends ChangeNotifier {
   String get kioskPin => _kioskPin;
   DateTime? get kioskExpiresAt =>
       _kioskExpiresAt == 0 ? null : DateTime.fromMillisecondsSinceEpoch(_kioskExpiresAt);
+  String get brandName => _brandName;
 
   String get accentColorHex => _accentColorHex;
 
@@ -207,6 +211,14 @@ class SettingsService extends ChangeNotifier {
     _kioskEnabled = _sharedPreferences.getBool(_kioskEnabledKey) ?? false;
     _kioskPin = _sharedPreferences.getString(_kioskPinKey) ?? _kioskDefaultPin;
     _kioskExpiresAt = _sharedPreferences.getInt(_kioskExpiresAtKey) ?? 0;
+    _brandName = _sharedPreferences.getString(_brandNameKey) ?? _brandDefault;
+    notifyListeners();
+  }
+
+  Future<void> setBrandName(String value) async {
+    final trimmed = value.trim().isEmpty ? _brandDefault : value.trim();
+    await _sharedPreferences.setString(_brandNameKey, trimmed);
+    _brandName = trimmed;
     notifyListeners();
   }
 

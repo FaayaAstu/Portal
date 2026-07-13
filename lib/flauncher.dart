@@ -17,27 +17,18 @@
  */
 
 
-import 'package:flauncher/actions.dart';
-import 'package:flauncher/custom_traversal_policy.dart';
 import 'dart:async';
 
+import 'package:flauncher/actions.dart';
+import 'package:flauncher/custom_traversal_policy.dart';
 import 'package:flauncher/flauncher_channel.dart';
-import 'package:flauncher/providers/apps_service.dart';
-import 'package:flauncher/providers/launcher_state.dart';
+import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
-import 'package:flauncher/widgets/apps_grid.dart';
-import 'package:flauncher/widgets/category_row.dart';
-import 'package:flauncher/widgets/launcher_alternative_view.dart';
 import 'package:flauncher/widgets/focus_aware_app_bar.dart';
+import 'package:flauncher/widgets/kiosk_home.dart';
 import 'package:flauncher/widgets/kiosk_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flauncher/widgets/continue_watching_row.dart';
-import 'package:flauncher/providers/watch_next_service.dart';
-import 'package:flauncher/providers/settings_service.dart';
-import 'package:flauncher/l10n/app_localizations.dart';
-
-import 'models/category.dart';
 
 class FLauncher extends StatefulWidget {
   const FLauncher({super.key});
@@ -109,40 +100,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
               builder: (_, wallpaperService, __) => _wallpaper(context, wallpaperService)
             ),
           ),
-          Consumer<LauncherState>(
-            builder: (_, state, child) => Visibility(
-              child: child!,
-              replacement: const Center(
-                child: AlternativeLauncherView()
-              ),
-              visible: state.launcherVisible
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              appBar: FocusAwareAppBar(key: _appBarKey),
-              body: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Consumer<AppsService>(
-                  builder: (context, appsService, _) {
-                    if (appsService.initialized) {
-                      return SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const ContinueWatchingRow(),
-                            _sections(appsService.launcherSections),
-                          ],
-                        ),
-                      );
-                    }
-                    else {
-                      return _emptyState(context);
-                    }
-                  }
-                )
-              )
-            )
-          ),
+          const KioskHome(),
           Consumer<SettingsService>(
             builder: (_, settings, __) => (settings.kioskEnabled && !_kioskBypassed)
                 ? Positioned.fill(
@@ -156,57 +114,6 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
       )
     ),
   );
-
-  Widget _sections(List<LauncherSection> sections) {
-    final settingsService = Provider.of<SettingsService>(context, listen: false);
-    final watchNextService = Provider.of<WatchNextService>(context, listen: false);
-    final bool continueWatchingActive = settingsService.showContinueWatching && watchNextService.programs.isNotEmpty;
-
-    List<Widget> children = [];
-    bool firstCategoryFound = continueWatchingActive;
-
-    for (var section in sections) {
-      final Key sectionKey = Key(section.id.toString());
-
-      if (section is LauncherSpacer) {
-        children.add(SizedBox(key: sectionKey, height: section.height.toDouble()));
-        continue;
-      }
-
-      Category category = section as Category;
-      Widget categoryWidget;
-
-      // Pass isFirstSection only to the first category found
-      bool isFirstSection = !firstCategoryFound;
-      if (isFirstSection) firstCategoryFound = true;
-
-      switch (category.type) {
-        case CategoryType.row:
-          categoryWidget = CategoryRow(
-              key: sectionKey,
-              category: category,
-              applications: category.applications,
-              isFirstSection: isFirstSection
-          );
-          break; // Added break
-        case CategoryType.grid:
-          categoryWidget = AppsGrid(
-              key: sectionKey,
-              category: category,
-              applications: category.applications,
-              isFirstSection: isFirstSection
-          );
-          break; // Added break
-      }
-
-      children.add(Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: categoryWidget
-      ));
-    }
-
-    return Column(children: children);
-  }
 
   Widget _wallpaper(BuildContext context, WallpaperService wallpaperService) {
     if (wallpaperService.wallpaper != null) {
@@ -222,20 +129,5 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
     else {
       return Container(key: const Key("background"), decoration: BoxDecoration(gradient: wallpaperService.gradient.gradient));
     }
-  }
-
-  Widget _emptyState(BuildContext context) {
-    AppLocalizations localizations = AppLocalizations.of(context)!;
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text(localizations.loading, style: Theme.of(context).textTheme.titleLarge),
-        ],
-      ),
-    );
   }
 }

@@ -55,6 +55,17 @@ class KioskPanelPage extends StatelessWidget {
                     onPressed: () => _changePinDialog(context, settings),
                   ),
                 ),
+                Consumer<SettingsService>(
+                  builder: (context, settings, _) => FocusableSettingsTile(
+                    leading: const Icon(Icons.label_outline),
+                    title: Text('Brand Name', style: Theme.of(context).textTheme.bodyMedium),
+                    trailing: Text(
+                      settings.brandName,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    onPressed: () => _changeBrandDialog(context, settings),
+                  ),
+                ),
               ],
             ),
           ),
@@ -128,6 +139,30 @@ class KioskPanelPage extends StatelessWidget {
     if (ok == true) {
       await settings.setKioskEnabled(false);
     }
+  }
+
+  Future<void> _changeBrandDialog(BuildContext context, SettingsService settings) async {
+    final controller = TextEditingController(text: settings.brandName);
+    final ok = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Brand Name'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 24,
+          decoration: const InputDecoration(labelText: 'Shown on home screen'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (ok != null) await settings.setBrandName(ok);
   }
 
   Future<void> _changePinDialog(BuildContext context, SettingsService settings) async {
