@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/providers/network_service.dart';
 import 'package:flauncher/providers/settings_service.dart';
+import 'package:flauncher/widgets/apps_page.dart';
 import 'package:flauncher/widgets/settings/settings_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,6 +50,10 @@ class _KioskHomeState extends State<KioskHome> {
     showDialog(context: context, builder: (_) => const SettingsPanel());
   }
 
+  void _openAllApps() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AppsPage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsService>();
@@ -62,7 +67,11 @@ class _KioskHomeState extends State<KioskHome> {
           Positioned(
             top: 20,
             right: 24,
-            child: _CornerCluster(now: _now, onSettings: _openSettings),
+            child: _CornerCluster(
+              now: _now,
+              onSettings: _openSettings,
+              onAllApps: _openAllApps,
+            ),
           ),
           Center(
             child: Column(
@@ -105,8 +114,13 @@ class _KioskHomeState extends State<KioskHome> {
 class _CornerCluster extends StatelessWidget {
   final DateTime now;
   final VoidCallback onSettings;
+  final VoidCallback onAllApps;
 
-  const _CornerCluster({required this.now, required this.onSettings});
+  const _CornerCluster({
+    required this.now,
+    required this.onSettings,
+    required this.onAllApps,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +144,8 @@ class _CornerCluster extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
+        _IconButton(icon: Icons.apps, onPressed: onAllApps),
+        const SizedBox(width: 4),
         _IconButton(icon: Icons.settings_outlined, onPressed: onSettings),
       ],
     );
