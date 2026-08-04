@@ -1221,9 +1221,22 @@ public class MainActivity extends FlutterActivity {
     }
 
     private void setActivityOrientation(String orientation) {
-        int mode = "portrait".equalsIgnoreCase(orientation)
-                ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+        final int mode;
+        switch (orientation == null ? "" : orientation.toLowerCase()) {
+            case "portrait":
+                mode = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                break;
+            case "portrait_reverse":
+                mode = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+                break;
+            case "landscape_reverse":
+                mode = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+                break;
+            case "landscape":
+            default:
+                mode = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                break;
+        }
         runOnUiThread(() -> setRequestedOrientation(mode));
     }
 

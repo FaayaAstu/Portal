@@ -56,19 +56,32 @@ class GeneralSettingsPage extends StatelessWidget {
                   onPressed: () => Navigator.of(context).pushNamed(BrightnessSettingsPage.routeName),
                 ),
                 Consumer<SettingsService>(
-                  builder: (context, settings, _) => FocusableSettingsTile(
-                    leading: const Icon(Icons.screen_rotation),
-                    title: Text('Orientation', style: Theme.of(context).textTheme.bodyMedium),
-                    trailing: Text(
-                      settings.orientation == ORIENTATION_PORTRAIT ? 'Portrait' : 'Landscape',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    onPressed: () => settings.setOrientation(
-                      settings.orientation == ORIENTATION_PORTRAIT
-                          ? ORIENTATION_LANDSCAPE
-                          : ORIENTATION_PORTRAIT,
-                    ),
-                  ),
+                  builder: (context, settings, _) {
+                    const order = [
+                      ORIENTATION_PORTRAIT,
+                      ORIENTATION_LANDSCAPE,
+                      ORIENTATION_PORTRAIT_REVERSE,
+                      ORIENTATION_LANDSCAPE_REVERSE,
+                    ];
+                    const labels = {
+                      ORIENTATION_PORTRAIT: 'Portrait',
+                      ORIENTATION_LANDSCAPE: 'Landscape',
+                      ORIENTATION_PORTRAIT_REVERSE: 'Portrait (reversed)',
+                      ORIENTATION_LANDSCAPE_REVERSE: 'Landscape (reversed)',
+                    };
+                    final current = settings.orientation;
+                    final idx = order.indexOf(current);
+                    final next = order[(idx == -1 ? 0 : idx + 1) % order.length];
+                    return FocusableSettingsTile(
+                      leading: const Icon(Icons.screen_rotation),
+                      title: Text('Orientation', style: Theme.of(context).textTheme.bodyMedium),
+                      trailing: Text(
+                        labels[current] ?? 'Landscape',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      onPressed: () => settings.setOrientation(next),
+                    );
+                  },
                 ),
                 Consumer<SettingsService>(
                   builder: (context, settings, _) => FocusableSettingsTile(

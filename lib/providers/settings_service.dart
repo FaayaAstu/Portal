@@ -59,6 +59,8 @@ const String _brandDefault = "FAAYA";
 
 const String ORIENTATION_LANDSCAPE = "landscape";
 const String ORIENTATION_PORTRAIT = "portrait";
+const String ORIENTATION_LANDSCAPE_REVERSE = "landscape_reverse";
+const String ORIENTATION_PORTRAIT_REVERSE = "portrait_reverse";
 
 // WiFi usage period options
 const String DATA_USAGE_DAILY = "daily";
