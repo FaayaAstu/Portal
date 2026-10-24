@@ -2,6 +2,7 @@ package me.efesser.flauncher.tvremote
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.util.Log
 import io.flutter.plugin.common.EventChannel
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +50,7 @@ class TvRemoteController(private val context: Context) : EventChannel.StreamHand
         }
 
     var deviceName: String
-        get() = prefs.getString(KEY_DEVICE_NAME, null)?.takeIf { it.isNotBlank() } ?: DEFAULT_NAME
+        get() = prefs.getString(KEY_DEVICE_NAME, null)?.takeIf { it.isNotBlank() } ?: defaultName()
         set(value) {
             prefs.edit().putString(KEY_DEVICE_NAME, value).apply()
             if (running) {
@@ -130,6 +131,14 @@ class TvRemoteController(private val context: Context) : EventChannel.StreamHand
         MdnsTxtKeys.VERSION to appVersionName(),
     )
 
+    // Distinguish multiple Portals on the same LAN out of the box. Users who
+    // care rename via the TV Remote settings panel; this is just a sane default.
+    private fun defaultName(): String {
+        val model = Build.MODEL?.takeIf { it.isNotBlank() } ?: "Portal"
+        val suffix = deviceId.filter { it.isLetterOrDigit() }.takeLast(4).uppercase()
+        return if (suffix.isNotEmpty()) "$model • $suffix" else model
+    }
+
     private fun appVersionName(): String = try {
         val pi = context.packageManager.getPackageInfo(context.packageName, 0)
         pi.versionName ?: ""
@@ -167,7 +176,6 @@ class TvRemoteController(private val context: Context) : EventChannel.StreamHand
         private const val PREFS_NAME = "flauncher_tv_remote"
         private const val KEY_DEVICE_ID = "deviceId"
         private const val KEY_DEVICE_NAME = "deviceName"
-        private const val DEFAULT_NAME = "Portal TV"
         private const val PORT = 8080
         private const val HEARTBEAT_INTERVAL_MS = 7_000L
     }

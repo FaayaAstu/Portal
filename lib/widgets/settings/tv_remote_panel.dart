@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'focusable_settings_tile.dart';
+import 'tv_remote_name_page.dart';
 
 class TvRemotePanelPage extends StatelessWidget {
   static const String routeName = "tv_remote_panel";
@@ -33,15 +34,22 @@ class TvRemotePanelPage extends StatelessWidget {
                     ),
                     onPressed: () => service.setEnabled(!service.enabled),
                   ),
+                  FocusableSettingsTile(
+                    leading: const Icon(Icons.label_outline),
+                    title: Text('Device name', style: Theme.of(context).textTheme.bodyMedium),
+                    trailing: Text(
+                      service.deviceName,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    onPressed: () => Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(builder: (_) => const TvRemoteNamePage()),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Device name', style: Theme.of(context).textTheme.bodySmall),
-                        const SizedBox(height: 4),
-                        Text(service.deviceName, style: Theme.of(context).textTheme.bodyMedium),
-                        const SizedBox(height: 12),
                         Text('Device ID', style: Theme.of(context).textTheme.bodySmall),
                         const SizedBox(height: 4),
                         Text(service.deviceId, style: Theme.of(context).textTheme.bodySmall),
