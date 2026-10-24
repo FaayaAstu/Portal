@@ -27,6 +27,7 @@ import 'package:flauncher/providers/wallpaper_service.dart';
 import 'package:flauncher/widgets/focus_aware_app_bar.dart';
 import 'package:flauncher/widgets/kiosk_home.dart';
 import 'package:flauncher/widgets/kiosk_overlay.dart';
+import 'package:flauncher/widgets/tv_remote_dispatcher.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -85,7 +86,8 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   }
 
   @override
-  Widget build(BuildContext context) => Actions(
+  Widget build(BuildContext context) => TvRemoteDispatcher(
+    child: Actions(
     actions: <Type, Action<Intent>>{
       MoveFocusToSettingsIntent: CallbackAction<MoveFocusToSettingsIntent>(
         onInvoke: (_) => _appBarKey.currentState?.focusSettings(),
@@ -112,6 +114,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
           ),
         ]
       )
+    ),
     ),
   );
 

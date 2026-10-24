@@ -27,6 +27,7 @@ import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/brightness_service.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
 import 'package:flauncher/providers/tv_inputs_service.dart';
+import 'package:flauncher/providers/tv_remote_service.dart';
 import 'package:flauncher/providers/notifications_service.dart';
 import 'package:flauncher/providers/watch_next_service.dart';
 import 'package:flauncher/providers/backup_service.dart';
@@ -72,6 +73,7 @@ Future<void> main() async {
             create: (_) => BrightnessService(sharedPreferences),
             lazy: false),
         ChangeNotifierProvider(create: (_) => TvInputsService(fLauncherChannel)),
+        ChangeNotifierProvider(create: (_) => TvRemoteService(sharedPreferences), lazy: false),
         ChangeNotifierProvider(create: (_) => NotificationsService(fLauncherChannel)),
         ChangeNotifierProvider(create: (_) => WatchNextService(fLauncherChannel)),
       ],

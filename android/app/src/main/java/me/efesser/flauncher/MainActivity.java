@@ -69,12 +69,17 @@ import java.util.concurrent.Future;
 import android.service.notification.StatusBarNotification;
 import android.content.ComponentName;
 
+import me.efesser.flauncher.tvremote.TvRemoteController;
+
 public class MainActivity extends FlutterActivity {
     private final String METHOD_CHANNEL = "me.efesser.flauncher/method";
     private final String APPS_EVENT_CHANNEL = "me.efesser.flauncher/event_apps";
     private final String NETWORK_EVENT_CHANNEL = "me.efesser.flauncher/event_network";
     private final String NOTIFICATIONS_EVENT_CHANNEL = "me.efesser.flauncher/event_notifications";
+    private final String TV_REMOTE_METHOD_CHANNEL = "me.efesser.flauncher/tv_remote";
+    private final String TV_REMOTE_EVENT_CHANNEL = "me.efesser.flauncher/tv_remote_events";
     private MethodChannel.Result pendingPermissionResult;
+    private TvRemoteController tvRemoteController;
 
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
@@ -187,6 +192,31 @@ public class MainActivity extends FlutterActivity {
 
         new EventChannel(messenger, NETWORK_EVENT_CHANNEL).setStreamHandler(
                 new NetworkEventStreamHandler(this));
+
+        tvRemoteController = new TvRemoteController(getApplicationContext());
+        new MethodChannel(messenger, TV_REMOTE_METHOD_CHANNEL).setMethodCallHandler((call, result) -> {
+            switch (call.method) {
+                case "start" -> {
+                    tvRemoteController.start();
+                    result.success(null);
+                }
+                case "stop" -> {
+                    tvRemoteController.stop();
+                    result.success(null);
+                }
+                case "isRunning" -> result.success(tvRemoteController.isRunning());
+                case "getDeviceInfo" -> result.success(tvRemoteController.info());
+                case "setDeviceName" -> {
+                    String name = call.arguments();
+                    if (name != null) {
+                        tvRemoteController.setDeviceName(name);
+                    }
+                    result.success(null);
+                }
+                default -> result.notImplemented();
+            }
+        });
+        new EventChannel(messenger, TV_REMOTE_EVENT_CHANNEL).setStreamHandler(tvRemoteController);
 
         new EventChannel(messenger, NOTIFICATIONS_EVENT_CHANNEL).setStreamHandler(
                 new EventChannel.StreamHandler() {
@@ -1153,6 +1183,14 @@ public class MainActivity extends FlutterActivity {
     }
 
 
+
+    @Override
+    protected void onDestroy() {
+        if (tvRemoteController != null) {
+            tvRemoteController.stop();
+        }
+        super.onDestroy();
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
