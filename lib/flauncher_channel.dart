@@ -116,6 +116,15 @@ class FLauncherChannel {
     }
   }
 
+  Future<void> adjustVolume(String direction) async =>
+      await _methodChannel.invokeMethod("adjustVolume", direction);
+
+  Future<void> toggleMute() async =>
+      await _methodChannel.invokeMethod("toggleMute");
+
+  Future<void> dispatchMediaKey(int keyCode) async =>
+      await _methodChannel.invokeMethod("dispatchMediaKey", keyCode);
+
   Future<void> startAmbientMode() async => await _methodChannel.invokeMethod("startAmbientMode");
 
   Future<void> setOrientation(String orientation) async {

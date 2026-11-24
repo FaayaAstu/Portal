@@ -31,6 +31,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Pair;
+import android.media.AudioManager;
+import android.view.KeyEvent;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvContract;
@@ -69,12 +71,17 @@ import java.util.concurrent.Future;
 import android.service.notification.StatusBarNotification;
 import android.content.ComponentName;
 
+import me.efesser.flauncher.tvremote.TvRemoteController;
+
 public class MainActivity extends FlutterActivity {
     private final String METHOD_CHANNEL = "me.efesser.flauncher/method";
     private final String APPS_EVENT_CHANNEL = "me.efesser.flauncher/event_apps";
     private final String NETWORK_EVENT_CHANNEL = "me.efesser.flauncher/event_network";
     private final String NOTIFICATIONS_EVENT_CHANNEL = "me.efesser.flauncher/event_notifications";
+    private final String TV_REMOTE_METHOD_CHANNEL = "me.efesser.flauncher/tv_remote";
+    private final String TV_REMOTE_EVENT_CHANNEL = "me.efesser.flauncher/tv_remote_events";
     private MethodChannel.Result pendingPermissionResult;
+    private TvRemoteController tvRemoteController;
 
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
@@ -178,6 +185,15 @@ public class MainActivity extends FlutterActivity {
                     getWindow().getDecorView().playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     result.success(null);
                 }
+                case "adjustVolume" -> {
+                    String direction = call.arguments();
+                    result.success(adjustVolume(direction));
+                }
+                case "toggleMute" -> result.success(toggleMute());
+                case "dispatchMediaKey" -> {
+                    Integer keyCode = call.arguments();
+                    result.success(dispatchMediaKey(keyCode != null ? keyCode : 0));
+                }
                 default -> throw new IllegalArgumentException();
             }
         });
@@ -187,6 +203,31 @@ public class MainActivity extends FlutterActivity {
 
         new EventChannel(messenger, NETWORK_EVENT_CHANNEL).setStreamHandler(
                 new NetworkEventStreamHandler(this));
+
+        tvRemoteController = new TvRemoteController(getApplicationContext());
+        new MethodChannel(messenger, TV_REMOTE_METHOD_CHANNEL).setMethodCallHandler((call, result) -> {
+            switch (call.method) {
+                case "start" -> {
+                    tvRemoteController.start();
+                    result.success(null);
+                }
+                case "stop" -> {
+                    tvRemoteController.stop();
+                    result.success(null);
+                }
+                case "isRunning" -> result.success(tvRemoteController.isRunning());
+                case "getDeviceInfo" -> result.success(tvRemoteController.info());
+                case "setDeviceName" -> {
+                    String name = call.arguments();
+                    if (name != null) {
+                        tvRemoteController.setDeviceName(name);
+                    }
+                    result.success(null);
+                }
+                default -> result.notImplemented();
+            }
+        });
+        new EventChannel(messenger, TV_REMOTE_EVENT_CHANNEL).setStreamHandler(tvRemoteController);
 
         new EventChannel(messenger, NOTIFICATIONS_EVENT_CHANNEL).setStreamHandler(
                 new EventChannel.StreamHandler() {
@@ -429,6 +470,37 @@ public class MainActivity extends FlutterActivity {
                 .setData(Uri.fromParts("package", packageName, null));
 
         return tryStartActivity(intent);
+    }
+
+    private boolean adjustVolume(String direction) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) return false;
+        int dir = switch (direction == null ? "" : direction) {
+            case "up" -> AudioManager.ADJUST_RAISE;
+            case "down" -> AudioManager.ADJUST_LOWER;
+            default -> AudioManager.ADJUST_SAME;
+        };
+        am.adjustStreamVolume(AudioManager.STREAM_MUSIC, dir, AudioManager.FLAG_SHOW_UI);
+        return true;
+    }
+
+    private boolean toggleMute() {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) return false;
+        am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI);
+        return true;
+    }
+
+    // Routes a media key to whichever audio-focus holder is foregrounded (ExoPlayer,
+    // Spotify, Netflix, etc). Works without special permissions.
+    private boolean dispatchMediaKey(int keyCode) {
+        if (keyCode == 0) return false;
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) return false;
+        long now = android.os.SystemClock.uptimeMillis();
+        am.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0));
+        am.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0));
+        return true;
     }
 
     private boolean uninstallApp(String packageName) {
@@ -1153,6 +1225,14 @@ public class MainActivity extends FlutterActivity {
     }
 
 
+
+    @Override
+    protected void onDestroy() {
+        if (tvRemoteController != null) {
+            tvRemoteController.stop();
+        }
+        super.onDestroy();
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

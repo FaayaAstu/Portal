@@ -30,6 +30,7 @@ import 'back_button_action_page.dart';
 import 'data_usage_period_page.dart';
 import 'screensaver_clock_style_page.dart';
 import 'backup_restore_page.dart';
+import 'tv_remote_panel.dart';
 
 
 class GeneralSettingsPage extends StatelessWidget {
@@ -125,6 +126,11 @@ class GeneralSettingsPage extends StatelessWidget {
                   leading: const Icon(Icons.settings_backup_restore),
                   title: Text(localizations.backupAndRestore, style: Theme.of(context).textTheme.bodyMedium),
                   onPressed: () => Navigator.of(context).pushNamed(BackupRestorePage.routeName),
+                ),
+                FocusableSettingsTile(
+                  leading: const Icon(Icons.settings_remote),
+                  title: Text('TV Remote', style: Theme.of(context).textTheme.bodyMedium),
+                  onPressed: () => Navigator.of(context).pushNamed(TvRemotePanelPage.routeName),
                 ),
                 Consumer<NotificationsService>(
                   builder: (context, service, _) {

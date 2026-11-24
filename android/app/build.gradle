@@ -18,6 +18,8 @@
 
 plugins {
     id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "org.jetbrains.kotlin.plugin.serialization"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -124,6 +126,10 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
 
+    kotlinOptions {
+        jvmTarget = '21'
+    }
+
     namespace 'com.leanbitlab.ltvL'
 
     applicationVariants.all { variant ->
@@ -141,4 +147,12 @@ android {
 
 flutter {
     source '../..'
+}
+
+dependencies {
+    // TV remote server (vendored from Faayaverse — wire format must match).
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+    implementation "io.rsocket.kotlin:rsocket-core:0.20.0"
+    implementation "io.rsocket.kotlin:rsocket-transport-ktor-tcp:0.20.0"
 }
