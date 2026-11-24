@@ -52,10 +52,20 @@ class _TvRemoteDispatcherState extends State<TvRemoteDispatcher> {
       case NavigateEvent():
         _onNavigate(event);
       case HomeEvent():
-      case PlayPauseEvent():
+        _home();
       case VolumeUpEvent():
+        _channel.adjustVolume('up');
       case VolumeDownEvent():
+        _channel.adjustVolume('down');
       case MuteEvent():
+        _channel.toggleMute();
+      case PlayPauseEvent():
+        // KEYCODE_MEDIA_PLAY_PAUSE = 85 — routed via AudioManager.dispatchMediaKeyEvent
+        // so whichever media session has audio focus handles it.
+        _channel.dispatchMediaKey(85);
+      // Deliberate no-ops on a launcher: Power needs system-signed perms,
+      // ChannelUp/Down have no launcher meaning, Search/Voice/Info have no
+      // Portal-side surface yet, Trackpad* assumes a cursor we don't render.
       case ChannelUpEvent():
       case ChannelDownEvent():
       case SearchEvent():
@@ -65,6 +75,11 @@ class _TvRemoteDispatcherState extends State<TvRemoteDispatcher> {
       case RawEvent():
         break;
     }
+  }
+
+  void _home() {
+    final nav = Navigator.maybeOf(context, rootNavigator: true);
+    if (nav != null) nav.popUntil((r) => r.isFirst);
   }
 
   void _moveFocus(RemoteDirection direction) {

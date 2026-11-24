@@ -31,6 +31,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Pair;
+import android.media.AudioManager;
+import android.view.KeyEvent;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvContract;
@@ -182,6 +184,15 @@ public class MainActivity extends FlutterActivity {
                 case "playClickSound" -> {
                     getWindow().getDecorView().playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     result.success(null);
+                }
+                case "adjustVolume" -> {
+                    String direction = call.arguments();
+                    result.success(adjustVolume(direction));
+                }
+                case "toggleMute" -> result.success(toggleMute());
+                case "dispatchMediaKey" -> {
+                    Integer keyCode = call.arguments();
+                    result.success(dispatchMediaKey(keyCode != null ? keyCode : 0));
                 }
                 default -> throw new IllegalArgumentException();
             }
@@ -459,6 +470,37 @@ public class MainActivity extends FlutterActivity {
                 .setData(Uri.fromParts("package", packageName, null));
 
         return tryStartActivity(intent);
+    }
+
+    private boolean adjustVolume(String direction) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) return false;
+        int dir = switch (direction == null ? "" : direction) {
+            case "up" -> AudioManager.ADJUST_RAISE;
+            case "down" -> AudioManager.ADJUST_LOWER;
+            default -> AudioManager.ADJUST_SAME;
+        };
+        am.adjustStreamVolume(AudioManager.STREAM_MUSIC, dir, AudioManager.FLAG_SHOW_UI);
+        return true;
+    }
+
+    private boolean toggleMute() {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) return false;
+        am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI);
+        return true;
+    }
+
+    // Routes a media key to whichever audio-focus holder is foregrounded (ExoPlayer,
+    // Spotify, Netflix, etc). Works without special permissions.
+    private boolean dispatchMediaKey(int keyCode) {
+        if (keyCode == 0) return false;
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) return false;
+        long now = android.os.SystemClock.uptimeMillis();
+        am.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0));
+        am.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0));
+        return true;
     }
 
     private boolean uninstallApp(String packageName) {
